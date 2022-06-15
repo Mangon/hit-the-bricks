@@ -1,27 +1,31 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="zh">
 
 <head>
-    <meta charset="UTF-8">
-    <title>hit the bricks!</title>
-    <link rel="stylesheet" href="css/style.css">
+  <meta charset="UTF-8">
+  <title>Hit the bricks!</title>
+  <link rel="stylesheet" href="css/style.css">
+  <link rel="shortcut icon" href="favicon.ico" type="image/x-icon" />
 </head>
 
 <body>
-    <canvas id="canvas" width="1000" height="500"></canvas>
-    <div class="game-rules">
-        <span>使用<font color="red">左右方向键</font>，进行移动</span>
-        <span><font color="red">空格键</font>发射小球并开始游戏，游戏结束时按空格键重置游戏</span>
-        <span><font color="red">P 键</font>暂停游戏</span>
-        <span>通关游戏后，按 <font color="red">N 键</font>可进入下一关卡</span>
-    </div>
-    <script src="js/paddle.js"></script>
-    <script src="js/ball.js"></script>
-    <script src="js/brick.js"></script>
-    <script src="js/score.js"></script>
-    <script src="js/scene.js"></script>
-    <script src="js/game.js"></script>
-    <script src="js/main.js"></script>
+  <canvas id="canvas" style="width: 1400px;height: 800px;"></canvas>
+  <!-- <div class="game-rules">
+    <span>使用 <font color="red">左右方向键</font> 进行移动</span>
+    <span>游戏开始后按 <font color="red">空格键</font> 发射小球</span>
+    <span>游戏进行中时按 <font color="red">空格键</font> 暂停游戏</span>
+    <span>游戏结束时按 <font color="red">空格键</font> 重置游戏</span>
+    <span>通关游戏后按 <font color="red">空格键</font> 可进入下一关卡</span>
+  </div> -->
+  <script src="js/jquery.js"></script>
+  <script src="js/changeOrientation.js"></script>
+  <script src="js/game.js"></script>
+  <script src="js/paddle.js"></script>
+  <script src="js/ball.js"></script>
+  <script src="js/brick.js"></script>
+  <script src="js/score.js"></script>
+  <script src="js/scene.js"></script>
+  <script src="js/main.js"></script>
 </body>
 
 </html>
