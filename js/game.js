@@ -30,7 +30,7 @@ class Game {
   }
   constructor() {
     const canvas = document.getElementById('canvas')
-    const direction = changeOrientation($(canvas)) // TODO: 删除 jquery 引用
+    const direction = changeOrientation(canvas)
     const targetWidth = Math.max(window.innerWidth, window.innerHeight)
     const targetHeight = Math.min(window.innerWidth, window.innerHeight)
     canvas.style.width = `${targetWidth}px`
@@ -57,7 +57,6 @@ class Game {
 
     // 以游戏高度的 1/500 为基本长度单位
     Game.UNIT = canvas.height / 500
-
     Object.assign(this, g)
   }
   // 绘制页面所有素材

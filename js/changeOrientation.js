@@ -2,15 +2,15 @@
  * 横竖屏
  * @param {Object}
  */
-function changeOrientation($print) {
-  var width = document.documentElement.clientWidth
-  var height = document.documentElement.clientHeight
+function changeOrientation(elem) {
+  var width = window.innerWidth
+  var height = window.innerHeight
   var direction = 'horizontal'
   if (width < height) {
-    $print.width(height)
-    $print.height(width)
-    $print.css('transform', `rotate(90deg) translateY(-${width}px)`)
-    $print.css('transform-origin', '0 0')
+    elem.style.width = `${height}px`
+    elem.style.height = `${width}px`
+    elem.style.transform = `rotate(90deg) translateY(-${width}px)`
+    elem.style.transformOrigin = '0 0'
     direction = 'vertical'
   }
 
