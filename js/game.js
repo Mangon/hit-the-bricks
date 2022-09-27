@@ -102,7 +102,7 @@ class Game {
     this.context.font = `${Game.FONT_SIZE * Game.UNIT / 2}px Microsoft YaHei`
     this.context.fillStyle = '#333'
     // 绘制分数
-    this.context.fillText(obj.text + obj.allScore, obj.x, obj.y)
+    this.context.fillText(obj.textScore + obj.allScore, obj.x, obj.y)
     // 绘制关卡
     this.context.fillText(obj.textLv + this.level, (this.width - Game.FONT_SIZE * Game.UNIT * 2), obj.y)
     // 绘制生命

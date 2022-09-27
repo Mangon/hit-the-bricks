@@ -6,7 +6,7 @@ class Score {
     let s = {
       x: Score.SCORE_X * Game.UNIT,                   // x轴坐标
       y: Score.SCORE_Y * Game.UNIT,                   // y轴坐标
-      text: '分数：',                                  // 文本分数
+      textScore: '分数：',                             // 文本分数
       textLv: '关卡：',                                // 关卡文本
       textLife: '生命：',                              // 生命文本
       score: 100,                                     // 每个砖块对应分数
