@@ -20,6 +20,7 @@ class Game {
   actions = {}                         // 记录按键动作
   keydowns = {}                        // 记录按键code
   direciton = null                     // 设备方向 horizital 水平 vertical 垂直
+  hint = null                          // 提示信息
   static STATE = {
     START: Symbol('START'), // 开始游戏
     RUNNING: Symbol('RUNNING'), // 游戏运行中
@@ -68,10 +69,22 @@ class Game {
     this.#drawScore() // 绘制分数
   }
   // 绘制文案
-  #drawLable(label) {
+  #drawLableInCanvas(label) {
     this.context.font = `${Game.FONT_SIZE * Game.UNIT}px Microsoft YaHei`
     this.context.fillStyle = '#000'
     this.context.fillText(label, (this.width - label.length * Game.FONT_SIZE * Game.UNIT) / 2, (this.height - Game.FONT_SIZE * Game.UNIT) / 2) // 文案位置于正中
+  }
+  // 以H5方式绘制文案
+  #drawLable(label) {
+    if (this.hint) {
+      this.hint.innerText = label
+    } else {
+      this.hint = document.createElement('div')
+      this.hint.style = `height: 100vh; display: flex; align-items: center; justify-content: space-around;` // 文案位置于正中
+      this.hint.style.font = `${Game.FONT_SIZE * Game.UNIT}px Microsoft YaHei`
+      this.hint.innerText = label
+      document.body.insertBefore(this.hint, this.canvas)
+    }
   }
   // 绘制图形
   #drawImage(obj) {
@@ -207,6 +220,8 @@ class Game {
       switch (this.state) {
         case Game.STATE.CONTINUNE: // 判断游戏是否继续
           this.#gameContinue()
+          this.timer && cancelAnimationFrame(this.timer)
+          this.timer = requestAnimationFrame(r)
           break
         case Game.STATE.GAMEOVER: // 判断游戏是否结束
           this.#gameOver()
@@ -216,10 +231,14 @@ class Game {
           this.checkBallBrick()
           // 绘制游戏所有素材
           this.#paint()
+          this.timer && cancelAnimationFrame(this.timer)
+          this.timer = requestAnimationFrame(r)
           break
         case Game.STATE.START: // 游戏开始
           // 绘制游戏所有素材
           this.#paint()
+          this.timer && cancelAnimationFrame(this.timer)
+          this.timer = requestAnimationFrame(r)
           break
         case Game.STATE.LEVEL_FINISH: // 当前关卡挑战成功
           if (this.level === Game.MAXLV) { // 最后一关通关
@@ -231,13 +250,15 @@ class Game {
           }
           break
       }
-      this.timer && cancelAnimationFrame(this.timer)
-      this.timer = requestAnimationFrame(r)
     }
     this.timer = requestAnimationFrame(r)
   }
   // 清除画布
   #clear() {
+    if (this.hint) {
+      this.hint.remove()
+      this.hint = null
+    }
     this.context.clearRect(0, 0, this.width, this.height)
   }
   /**
@@ -303,16 +324,14 @@ class Game {
           if (this.level !== Game.MAXLV) {
             // 不为最终关卡时，进入下一关
             this.level++
-            // 开始游戏
-            this.state = Game.STATE.START
-            // 初始化下一关卡
-            this.#render()
           } else {
             // 已全部通关，重新开始
             this.#reset()
-            this.state = Game.STATE.START
-            this.#render()
           }
+          // 开始游戏
+          this.state = Game.STATE.START
+          // 初始化下一关卡
+          this.#render()
           break
       }
     }
