@@ -30,35 +30,51 @@ class Game {
     CONTINUNE: Symbol('CONTINUNE'), // 游戏继续
   }
   constructor() {
-    const canvas = document.getElementById('canvas')
-    const direction = changeOrientation(canvas)
-    const targetWidth = Math.max(window.innerWidth, window.innerHeight)
-    const targetHeight = Math.min(window.innerWidth, window.innerHeight)
-    canvas.style.width = `${targetWidth}px`
-    canvas.style.height = `${targetHeight}px`
-    const canvasComputedStyle = getComputedStyle(canvas, null)
-    const elementWidth = parseInt(canvasComputedStyle['width'])
-    const elementHeight = parseInt(canvasComputedStyle['height'])
+    this.canvas = document.getElementById('canvas')
+    const { direction, width: maxWidth } = this.#changeOrientation(this.canvas)
+    const { width, height } = this.#retinaAdaption(this.canvas)
     let g = {
       level: 1,                         // 初始为第一关
       life: Game.MAXLIFE,               // 初始有最多生命 
       state: Game.STATE.START,          // 初始默认为START
       canvas,
-      context: canvas.getContext('2d'),
-      width: elementWidth,
-      height: elementHeight,
+      context: this.canvas.getContext('2d'),
+      width,
+      height,
       direction,
-      maxWidth: targetWidth,
+      maxWidth,
     }
-
-    // 高清屏处理
+    // 以游戏高度的 1/500 为基本长度单位
+    Game.UNIT = this.canvas.height / 500
+    Object.assign(this, g)
+  }
+  // 强制横屏
+  #changeOrientation(elem) {
+    var width = window.innerWidth
+    var height = window.innerHeight
+    var direction = 'horizontal'
+    if (width < height) {
+      elem.style.width = `${height}px`
+      elem.style.height = `${width}px`
+      elem.style.transform = `rotate(90deg) translateY(-${width}px)`
+      elem.style.transformOrigin = '0 0'
+      direction = 'vertical'
+    } else {
+      elem.style.width = `${width}px`
+      elem.style.height = `${height}px`
+      elem.style.transform = `initial`
+    }
+    return { direction, width: parseInt(canvas.style.width), height: parseInt(canvas.style.height) }
+  }
+  // 高清屏幕适配
+  #retinaAdaption(canvas) {
+    const canvasComputedStyle = getComputedStyle(canvas, null)
+    const elementWidth = parseInt(canvasComputedStyle['width'])
+    const elementHeight = parseInt(canvasComputedStyle['height'])
     canvas.width = elementWidth * devicePixelRatio
     canvas.height = elementHeight * devicePixelRatio
-    g.context.scale(devicePixelRatio, devicePixelRatio)
-
-    // 以游戏高度的 1/500 为基本长度单位
-    Game.UNIT = canvas.height / 500
-    Object.assign(this, g)
+    canvas.getContext('2d').scale(devicePixelRatio, devicePixelRatio)
+    return { width: elementWidth, height: elementHeight }
   }
   // 绘制页面所有素材
   #paint() {
@@ -68,7 +84,7 @@ class Game {
     this.#drawBricks() // 绘制砖块
     this.#drawScore() // 绘制分数
   }
-  // 绘制文案
+  // 以Canvas方式绘制文案
   #drawLableInCanvas(label) {
     this.context.font = `${Game.FONT_SIZE * Game.UNIT}px Microsoft YaHei`
     this.context.fillStyle = '#000'
@@ -78,13 +94,16 @@ class Game {
   #drawLable(label) {
     if (this.hint) {
       this.hint.innerText = label
-    } else {
-      this.hint = document.createElement('div')
-      this.hint.style = `height: 100vh; display: flex; align-items: center; justify-content: space-around;` // 文案位置于正中
-      this.hint.style.font = `${Game.FONT_SIZE * Game.UNIT}px Microsoft YaHei`
-      this.hint.innerText = label
-      document.body.insertBefore(this.hint, this.canvas)
+      return
     }
+    this.hint = document.createElement('div')
+    this.#changeOrientation(this.hint)
+    this.hint.style.display = 'flex'
+    this.hint.style.alignItems = 'center'
+    this.hint.style.justifyContent = 'space-around'
+    this.hint.style.font = `${Game.FONT_SIZE * Game.UNIT}px Microsoft YaHei`
+    this.hint.innerText = label
+    document.body.insertBefore(this.hint, this.canvas)
   }
   // 绘制图形
   #drawImage(obj) {
@@ -370,6 +389,18 @@ class Game {
     window.addEventListener('touchend', (event) => {
       this.keydowns['ArrowLeft'] = false
       this.keydowns['ArrowRight'] = false
+    })
+
+    const windowChange = 'onorientationchange' in window ? 'orientationchange' : 'resize'
+
+    window.addEventListener(windowChange, () => {
+      // TODO: 进行中状态需要暂停；重新绘制
+      const { direction, width: maxWidth } = this.#changeOrientation(this.canvas)
+      const { width, height } = this.#retinaAdaption(this.canvas)
+      Object.assign(this, { direction, maxWidth, width, height })
+      if (this.hint) {
+        this.#changeOrientation(this.hint)
+      }
     })
   }
 
