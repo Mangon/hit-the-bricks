@@ -21,6 +21,7 @@ class Game {
   keydowns = {}                        // 记录按键code
   direciton = null                     // 设备方向 horizital 水平 vertical 垂直
   hint = null                          // 提示信息
+  renderer = null                      // 渲染器
   static STATE = {
     START: Symbol('START'), // 开始游戏
     RUNNING: Symbol('RUNNING'), // 游戏运行中
@@ -64,7 +65,7 @@ class Game {
       elem.style.height = `${height}px`
       elem.style.transform = `initial`
     }
-    return { direction, width: parseInt(canvas.style.width), height: parseInt(canvas.style.height) }
+    return { direction, width: parseInt(elem.style.width), height: parseInt(elem.style.height) }
   }
   // 高清屏幕适配
   #retinaAdaption(canvas) {
@@ -84,14 +85,17 @@ class Game {
     this.#drawBricks() // 绘制砖块
     this.#drawScore() // 绘制分数
   }
+  #drawLabel(label) {
+    this.#drawLabelInH5(label)
+  }
   // 以Canvas方式绘制文案
-  #drawLableInCanvas(label) {
+  #drawLabelInCavnas(label) {
     this.context.font = `${Game.FONT_SIZE * Game.UNIT}px Microsoft YaHei`
     this.context.fillStyle = '#000'
     this.context.fillText(label, (this.width - label.length * Game.FONT_SIZE * Game.UNIT) / 2, (this.height - Game.FONT_SIZE * Game.UNIT) / 2) // 文案位置于正中
   }
   // 以H5方式绘制文案
-  #drawLable(label) {
+  #drawLabelInH5(label) {
     if (this.hint) {
       this.hint.innerText = label
       return
@@ -146,34 +150,27 @@ class Game {
     this.paddle = new Paddle(this)
     this.ball = new Ball(this)
     this.state = Game.STATE.START
-    this.#paint()
   }
   // 游戏结束
   #gameOver() {
-    // 清除定时器
-    cancelAnimationFrame(this.timer)
     // 清除画布
     this.#clear()
     // 绘制提示文字
-    this.#drawLable(`游戏结束，总分${this.score.allScore}`)
+    this.#drawLabel(`游戏结束，总分${this.score.allScore}`)
   }
   // 游戏晋级
   #gameNext() {
-    // 清除定时器
-    cancelAnimationFrame(this.timer)
     // 清除画布
     this.#clear()
     // 绘制提示文字
-    this.#drawLable('恭喜晋级下一关卡')
+    this.#drawLabel('恭喜晋级下一关卡')
   }
   // 游戏通关
   #gameWin() {
-    // 清除定时器
-    cancelAnimationFrame(this.timer)
     // 清除画布
     this.#clear()
     // 绘制提示文字
-    this.#drawLable(`恭喜通关全部关卡，总分${this.score.allScore}`)
+    this.#drawLabel(`恭喜通关全部关卡，总分${this.score.allScore}`)
   }
   // 小球碰撞砖块检测
   checkBallBrick() {
@@ -220,13 +217,22 @@ class Game {
     // 移动小球
     b.move(this)
   }
-  // 设置逐帧动画
   #render() {
+    this.timer && cancelAnimationFrame(this.timer)
+    this.timer = requestAnimationFrame(this.renderer)
+  }
+  #stopRender() {
+    this.timer && cancelAnimationFrame(this.timer)
+  }
+  #initSprites() {
     this.scene = new Scene(this)
     this.paddle = new Paddle(this)
     this.ball = new Ball(this)
     this.score = new Score(this)
-    const r = () => {
+  }
+  // 设置逐帧动画
+  #registerRenderer() {
+    this.renderer = () => {
       // actions集合
       let actions = Object.keys(this.actions)
       for (let i = 0; i < actions.length; i++) {
@@ -237,42 +243,43 @@ class Game {
         }
       }
       switch (this.state) {
-        case Game.STATE.CONTINUNE: // 判断游戏是否继续
+        case Game.STATE.CONTINUNE: // 游戏继续
           this.#gameContinue()
-          this.timer && cancelAnimationFrame(this.timer)
-          this.timer = requestAnimationFrame(r)
+          this.#paint()
+          this.#render()
           break
-        case Game.STATE.GAMEOVER: // 判断游戏是否结束
+        case Game.STATE.GAMEOVER: // 游戏结束
+          this.#stopRender()
           this.#gameOver()
           break
-        case Game.STATE.RUNNING: // 判断游戏运行中的事件
+        case Game.STATE.RUNNING: // 游戏运行中的事件
           // 检查小球和砖块/墙体是否相撞
           this.checkBallBrick()
           // 绘制游戏所有素材
           this.#paint()
-          this.timer && cancelAnimationFrame(this.timer)
-          this.timer = requestAnimationFrame(r)
+          this.#render()
           break
         case Game.STATE.START: // 游戏开始
           // 绘制游戏所有素材
           this.#paint()
-          this.timer && cancelAnimationFrame(this.timer)
-          this.timer = requestAnimationFrame(r)
+          this.#render()
           break
         case Game.STATE.LEVEL_FINISH: // 当前关卡挑战成功
           if (this.level === Game.MAXLV) { // 最后一关通关
+            this.#stopRender()
             // 挑战成功，渲染通关场景
             this.#gameWin()
           } else { // 其余关卡通关
+            this.#stopRender()
             // 挑战成功，渲染下一关卡场景
             this.#gameNext()
           }
           break
       }
     }
-    this.timer = requestAnimationFrame(r)
+    this.timer = requestAnimationFrame(this.renderer)
   }
-  // 清除画布
+  // 清除画布 
   #clear() {
     if (this.hint) {
       this.hint.remove()
@@ -337,6 +344,7 @@ class Game {
           // 开始游戏/继续游戏
           this.ball.fired = true
           this.state = Game.STATE.RUNNING
+          this.#render()
           break
         case Game.STATE.LEVEL_FINISH:
           // 通关当前关卡
@@ -349,6 +357,7 @@ class Game {
           }
           // 开始游戏
           this.state = Game.STATE.START
+          this.#initSprites()
           // 初始化下一关卡
           this.#render()
           break
@@ -369,7 +378,7 @@ class Game {
     window.addEventListener('keydown', (event) => {
       this.keydowns[event.code] = true
       switch (event.code) {
-        // 注册空格键发射事件
+        // 注册空格键事件
         case 'Space':
           spaceAction()
           break
@@ -410,8 +419,10 @@ class Game {
   start() {
     // 绑定事件
     this.#bindEvent()
-    // 渲染元素
-    this.#render()
+    // 初始化实体
+    this.#initSprites()
+    // 注册渲染器
+    this.#registerRenderer()
   }
 
   /**
