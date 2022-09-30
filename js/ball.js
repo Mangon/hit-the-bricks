@@ -5,8 +5,10 @@ class Ball {
     const realDiameter = Ball.DIAMETER * Game.UNIT;
     let b = {
       x: g.width / 2 - realDiameter / 2,    // x轴坐标
+      minX: 0,                              // 最小x轴坐标
       maxX: g.width - realDiameter,         // 最大x轴坐标
       y: g.paddle.y - realDiameter - 1,     // y轴坐标
+      minY: g.maxHeight,     // 最小y轴坐标
       maxY: g.height - realDiameter,        // 最大y轴坐标
       d: realDiameter,                      // 小球直径
       speedX: 0.5 * Game.UNIT,              // x轴速度
@@ -29,10 +31,10 @@ class Ball {
   move(game) {
     if (this.fired) {
       // 碰撞边界检测
-      if (this.x < 0 || this.x > this.maxX) {
+      if (this.x < this.minX || this.x > this.maxX) {
         this.speedX *= -1
       }
-      if (this.y < 0) {
+      if (this.y < this.minY) {
         this.speedY *= -1
       }
       // 移动

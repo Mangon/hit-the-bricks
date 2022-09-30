@@ -34,19 +34,21 @@ class Game {
     this.canvas = document.getElementById('canvas')
     const { direction, width: maxWidth } = this.#changeOrientation(this.canvas)
     const { width, height } = this.#retinaAdaption(this.canvas)
+
+    // 以游戏高度的 1/500 为基本长度单位
+    Game.UNIT = this.canvas.height / 500
+
     let g = {
       level: 1,                         // 初始为第一关
       life: Game.MAXLIFE,               // 初始有最多生命 
       state: Game.STATE.START,          // 初始默认为START
-      canvas,
       context: this.canvas.getContext('2d'),
       width,
       height,
       direction,
       maxWidth,
+      maxHeight: Score.SCORE_Y * Game.UNIT + 5 * Game.UNIT
     }
-    // 以游戏高度的 1/500 为基本长度单位
-    Game.UNIT = this.canvas.height / 500
     Object.assign(this, g)
   }
   // 强制横屏
@@ -135,14 +137,18 @@ class Game {
   // 绘制计数板
   #drawScore() {
     const obj = this.score
-    this.context.font = `${Game.FONT_SIZE * Game.UNIT / 2}px Microsoft YaHei`
-    this.context.fillStyle = '#333'
+    const ctx = this.context
+    ctx.font = `${Game.FONT_SIZE * Game.UNIT / 2}px Microsoft YaHei`
+    ctx.fillStyle = '#333'
     // 绘制分数
-    this.context.fillText(obj.textScore + obj.allScore, obj.x, obj.y)
+    ctx.fillText(obj.textScore + obj.allScore, obj.x, obj.y)
     // 绘制关卡
-    this.context.fillText(obj.textLv + this.level, (this.width - Game.FONT_SIZE * Game.UNIT * 2), obj.y)
+    ctx.fillText(obj.textLv + this.level, (this.width - Game.FONT_SIZE * Game.UNIT * 2), obj.y)
     // 绘制生命
-    this.context.fillText(obj.textLife + this.life, (this.width - Game.FONT_SIZE * Game.UNIT * 4), obj.y)
+    ctx.fillText(obj.textLife + this.life, (this.width - Game.FONT_SIZE * Game.UNIT * 4), obj.y)
+    ctx.moveTo(0, this.maxHeight)
+    ctx.lineTo(this.maxWidth, this.maxHeight)
+    ctx.stroke()
   }
   // 生命-1 游戏继续
   #gameContinue() {
