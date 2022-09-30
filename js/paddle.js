@@ -15,7 +15,7 @@ class Paddle {
       h, // 挡板高度
       isLeftMove: true, // 能否左移
       isRightMove: true, // 能否右移
-      drawImage: function (ctx, x, y) {
+      draw: function (ctx, x, y) {
         ctx.beginPath()
         ctx.arc(x + h / 2, y + h / 2, h / 2, Math.PI * 1.5, Math.PI / 2, true)
         ctx.lineTo(x + (w - h / 2), y + h)

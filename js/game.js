@@ -1,17 +1,18 @@
 
 // 游戏主要运行逻辑
 class Game {
-  static MAXLV = 4                     // 最终关卡
+  static MAXLV = 5                     // 最终关卡
   static MAXLIFE = 3                   // 初始生命
   static FPS = 60                      // 游戏运行帧数
   static FONT_SIZE = 32                // 字体大小
+  static BRICK_SCORE = 100             // 每个砖块对应分数
   level = null                         // 当前关卡
   life = null                          // 当前生命
+  score = null                         // 当前分数
   scene = null                         // 场景对象
   ball = null                          // 小球对象
   paddle = null                        // 挡板对象
-  score = null                         // 计分板对象
-  timer = null                         // 轮询定时器
+  panel = null                         // 游戏板对象
   state = null                         // 游戏状态
   canvas = null                        // canvas元素
   context = null                       // canvas画布
@@ -21,6 +22,7 @@ class Game {
   keydowns = {}                        // 记录按键code
   direciton = null                     // 设备方向 horizital 水平 vertical 垂直
   hint = null                          // 提示信息
+  timer = null                         // 渲染器轮询定时器
   renderer = null                      // 渲染器
   static STATE = {
     START: Symbol('START'), // 开始游戏
@@ -40,22 +42,23 @@ class Game {
 
     let g = {
       level: 1,                         // 初始为第一关
-      life: Game.MAXLIFE,               // 初始有最多生命 
+      score: 0,                         // 初始分数为0
+      life: Game.MAXLIFE,               // 初始有最多生命
       state: Game.STATE.START,          // 初始默认为START
       context: this.canvas.getContext('2d'),
       width,
       height,
       direction,
       maxWidth,
-      maxHeight: Score.SCORE_Y * Game.UNIT + 5 * Game.UNIT
+      maxHeight: (Panel.PANEL_Y + 5) * Game.UNIT
     }
     Object.assign(this, g)
   }
   // 强制横屏
   #changeOrientation(elem) {
-    var width = window.innerWidth
-    var height = window.innerHeight
-    var direction = 'horizontal'
+    const width = window.innerWidth,
+    height = window.innerHeight
+    let direction = 'horizontal'
     if (width < height) {
       elem.style.width = `${height}px`
       elem.style.height = `${width}px`
@@ -85,7 +88,7 @@ class Game {
     this.#drawPaddle() // 绘制挡板
     this.#drawBall() // 绘制小球
     this.#drawBricks() // 绘制砖块
-    this.#drawScore() // 绘制分数
+    this.#drawPanel() // 绘制分数
   }
   #drawLabel(label) {
     this.#drawLabelInH5(label)
@@ -112,43 +115,31 @@ class Game {
     document.body.insertBefore(this.hint, this.canvas)
   }
   // 绘制图形
-  #drawImage(obj) {
-    if (obj.drawImage) {
-      obj.drawImage(this.context, obj.x, obj.y, obj)
+  #draw(obj) {
+    if (obj.draw) {
+      obj.draw(this.context, obj.x, obj.y, obj)
       return
     }
-    this.context.drawImage(obj.image, obj.x, obj.y)
+    this.context.drawImage(obj.image, obj.x, obj.y) // 从图片加载
   }
   // 绘制挡板
   #drawPaddle() {
-    this.#drawImage(this.paddle)
+    this.#draw(this.paddle)
   }
   // 绘制小球
   #drawBall() {
-    this.#drawImage(this.ball)
+    this.#draw(this.ball)
   }
   // 绘制所有砖块
   #drawBricks() {
     const obj = this.scene.bricks
     for (let item of obj) {
-      this.#drawImage(item)
+      this.#draw(item)
     }
   }
   // 绘制计数板
-  #drawScore() {
-    const obj = this.score
-    const ctx = this.context
-    ctx.font = `${Game.FONT_SIZE * Game.UNIT / 2}px Microsoft YaHei`
-    ctx.fillStyle = '#333'
-    // 绘制分数
-    ctx.fillText(obj.textScore + obj.allScore, obj.x, obj.y)
-    // 绘制关卡
-    ctx.fillText(obj.textLv + this.level, (this.width - Game.FONT_SIZE * Game.UNIT * 2), obj.y)
-    // 绘制生命
-    ctx.fillText(obj.textLife + this.life, (this.width - Game.FONT_SIZE * Game.UNIT * 4), obj.y)
-    ctx.moveTo(0, this.maxHeight)
-    ctx.lineTo(this.maxWidth, this.maxHeight)
-    ctx.stroke()
+  #drawPanel() {
+    this.#draw(this.panel)
   }
   // 生命-1 游戏继续
   #gameContinue() {
@@ -162,7 +153,7 @@ class Game {
     // 清除画布
     this.#clear()
     // 绘制提示文字
-    this.#drawLabel(`游戏结束，总分${this.score.allScore}`)
+    this.#drawLabel(`游戏结束，总分${this.score}`)
   }
   // 游戏晋级
   #gameNext() {
@@ -176,7 +167,7 @@ class Game {
     // 清除画布
     this.#clear()
     // 绘制提示文字
-    this.#drawLabel(`恭喜通关全部关卡，总分${this.score.allScore}`)
+    this.#drawLabel(`恭喜通关全部关卡，总分${this.score}`)
   }
   // 小球碰撞砖块检测
   checkBallBrick() {
@@ -213,7 +204,7 @@ class Game {
             b.speedX *= -1
           }
           // 计算分数
-          this.score.computeScore()
+          this.score += Game.BRICK_SCORE
           if (this.scene.bricks.length === 0) {
             this.state = Game.STATE.LEVEL_FINISH
           }
@@ -234,7 +225,7 @@ class Game {
     this.scene = new Scene(this)
     this.paddle = new Paddle(this)
     this.ball = new Ball(this)
-    this.score = new Score(this)
+    this.panel = new Panel(this)
   }
   // 设置逐帧动画
   #registerRenderer() {
@@ -261,7 +252,7 @@ class Game {
         case Game.STATE.RUNNING: // 游戏运行中的事件
           // 检查小球和砖块/墙体是否相撞
           this.checkBallBrick()
-          // 绘制游戏所有素材
+          // // 绘制游戏所有素材
           this.#paint()
           this.#render()
           break
@@ -339,6 +330,7 @@ class Game {
           // 游戏结束时，重新开始
           this.#reset()
           this.state = Game.STATE.START
+          this.#initSprites()
           this.#render()
           break
         case Game.STATE.RUNNING:
@@ -435,7 +427,7 @@ class Game {
    * 重置游戏
    */
   #reset() {
-    this.score.clearScore()
+    this.score = 0
     this.life = Game.MAXLIFE
     this.level = 1
   }

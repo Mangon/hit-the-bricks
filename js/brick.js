@@ -10,7 +10,7 @@ class Brick {
       h: Brick.HEIGHT * Game.UNIT,                    // 砖块高度
       life,                                           // 砖块生命值
       alive: true,                                    // 是否存活
-      drawImage: function (ctx, x, y, { life }) {
+      draw: function (ctx, x, y, { life }) {
         const RADIUS = 2 * Game.UNIT
         const WIDTH = Brick.WIDTH * Game.UNIT
         const HEIGHT = Brick.HEIGHT * Game.UNIT

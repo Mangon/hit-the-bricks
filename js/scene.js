@@ -3,7 +3,7 @@ class Scene {
   bricks = null // 场景砖块实例
   constructor(g) {
     let s = {
-      lv: g.level, // 游戏难度级别
+      lv: g.level, // 游戏关卡
       width: g.width,
       height: g.height,
       bricks: [] // 实例化所有砖块对象集合
@@ -25,45 +25,43 @@ class Scene {
   }
   // 创建砖块坐标二维数组，并生成不同关卡
   #creatBrickList() {
-    let lv = this.lv, // 游戏难度级别
+    const lv = this.lv, // 游戏关卡
       c_w = this.width, // canvas宽度
       c_h = this.height, // canvas高度
-      xNum_max = c_w / (Brick.WIDTH * Game.UNIT), // x轴砖块最大数量
-      yNum_max = c_h / (Brick.HEIGHT * Game.UNIT), // y轴砖块最大数量
-      x_start = 0 * Game.UNIT, // x轴起始坐标，根据砖块数量浮动
-      y_start = 30 * Game.UNIT // y轴起始坐标，默认从30起
-
-    let brickList = [];
+      xNum_max = Math.floor(c_w / (Brick.WIDTH * Game.UNIT)), // x轴砖块最大数量
+      yNum_max = Math.floor(c_h / (Brick.HEIGHT * Game.UNIT) / 2), // y轴砖块最大数量
+      xNum = Math.min(xNum_max, 16), // x轴砖块第一层数量
+      yNum = Math.min(yNum_max, 9)  // y轴砖块层数
+    let x_start = 0, // x轴起始坐标，根据砖块数量浮动
+      y_start = (Panel.PANEL_Y + 5 + Brick.HEIGHT) * Game.UNIT, // y轴起始坐标
+      brickList = [],
+      cNum = null // 当前行数
     switch (lv) {
       // case 1: // MARK: debug code
       // case 2:
       // case 3:
       // case 4:
-      //     let arr = []
-      //     arr.push({
-      //         x: (xNum_max - 1) / 2 * 50 - 50,
-      //         y: y_start + 20,
-      //         type: 1,
-      //     })
-      //     brickList.push(arr)
-      //     break
+      //   let arr = []
+      //   arr.push({
+      //     x: (xNum_max - 1) / 2 * 50 - 50,
+      //     y: y_start + 20,
+      //     type: 1,
+      //   })
+      //   brickList.push(arr)
+      //   break
       case 1: // 正三角形
-        var xNum = 16, // x轴砖块第一层数量
-          yNum = 9 // y轴砖块层数
         // 循环y轴
         for (let i = 0; i < yNum; i++) {
           let arr = []
           // 修改每层x轴砖块数量
           if (i === 0) {
-            xNum = 1
-          } else if (i === 1) {
-            xNum = 2
+            cNum = xNum - yNum
           } else {
-            xNum += 2
+            cNum += 1
           }
-          x_start = (xNum_max - xNum) / 2 * Brick.WIDTH * Game.UNIT // 修改每层x轴砖块起始坐标
+          x_start = (c_w - cNum * Brick.WIDTH * Game.UNIT) / 2 // 修改每层x轴砖块起始坐标
           // 循环x轴
-          for (let k = 0; k < xNum; k++) {
+          for (let k = 0; k < cNum; k++) {
             arr.push({
               x: x_start + k * Brick.WIDTH * Game.UNIT,
               y: y_start + i * Brick.HEIGHT * Game.UNIT,
@@ -74,22 +72,18 @@ class Scene {
         }
         break
       case 2: // 倒三角形
-        var xNum = 16, // x轴砖块第一层数量
-          yNum = 9 // y轴砖块层数
         // 循环y轴
         for (let i = 0; i < yNum; i++) {
           let arr = []
           // 修改每层x轴砖块数量
-          if (i === yNum - 1) {
-            xNum = 1
-          } else if (i === 0) {
-            xNum = xNum
+          if (i === 0) {
+            cNum = xNum
           } else {
-            xNum -= 2
+            cNum -= 1
           }
-          x_start = (xNum_max - xNum) / 2 * Brick.WIDTH * Game.UNIT // 修改每层x轴砖块起始坐标
+          x_start = (c_w - cNum * Brick.WIDTH * Game.UNIT) / 2 // 修改每层x轴砖块起始坐标
           // 循环x轴
-          for (let k = 0; k < xNum; k++) {
+          for (let k = 0; k < cNum; k++) {
             arr.push({
               x: x_start + k * Brick.WIDTH * Game.UNIT,
               y: y_start + i * Brick.HEIGHT * Game.UNIT,
@@ -100,22 +94,21 @@ class Scene {
         }
         break
       case 3: // 工字形
-        var xNum = 16, // x轴砖块第一层数量
-          yNum = 9 // y轴砖块层数
         // 循环y轴
         for (let i = 0; i < yNum; i++) {
           let arr = []
           // 修改每层x轴砖块数量
           if (i === 0) {
-            xNum = xNum
-          } else if (i > 4) {
-            xNum += 2
+            cNum = xNum
+          } else if (i > Math.floor(yNum / 2)) {
+            cNum += 3
           } else {
-            xNum -= 2
+            cNum -= 3
           }
-          x_start = (xNum_max - xNum) / 2 * Brick.WIDTH * Game.UNIT // 修改每层x轴砖块起始坐标
+          cNum = (cNum < 0) ? 0 : cNum;
+          x_start = (c_w - cNum * Brick.WIDTH * Game.UNIT) / 2 // 修改每层x轴砖块起始坐标
           // 循环x轴
-          for (let k = 0; k < xNum; k++) {
+          for (let k = 0; k < cNum; k++) {
             arr.push({
               x: x_start + k * Brick.WIDTH * Game.UNIT,
               y: y_start + i * Brick.HEIGHT * Game.UNIT,
@@ -126,15 +119,13 @@ class Scene {
         }
         break
       case 4: // 回字形
-        var xNum = 16, // x轴砖块第一层数量
-          yNum = 9 // y轴砖块层数
         for (let i = 0; i < yNum; i++) {
           let arr = []
           // 修改每层x轴砖块数量
           if (i === 0 || i === yNum - 1) {
-            xNum = 16
-            x_start = (xNum_max - xNum) / 2 * Brick.WIDTH * Game.UNIT
-            for (let k = 0; k < xNum; k++) {
+            cNum = xNum
+            x_start = (c_w - cNum * Brick.WIDTH * Game.UNIT) / 2 // 修改每层x轴砖块起始坐标
+            for (let k = 0; k < cNum; k++) {
               arr.push({
                 x: x_start + k * Brick.WIDTH * Game.UNIT,
                 y: y_start + i * Brick.HEIGHT * Game.UNIT,
@@ -147,7 +138,24 @@ class Scene {
               y: y_start + i * Brick.HEIGHT * Game.UNIT,
               type: 2,
             }, {
-              x: x_start + (16 - 1) * Brick.WIDTH * Game.UNIT,
+              x: x_start + (xNum - 1) * Brick.WIDTH * Game.UNIT,
+              y: y_start + i * Brick.HEIGHT * Game.UNIT,
+              type: 2,
+            })
+          }
+          brickList.push(arr)
+        }
+        break
+      case 5: // 全砖块
+        // 循环y轴
+        for (let i = 0; i < yNum; i++) {
+          let arr = []
+          cNum = xNum
+          x_start = (c_w - cNum * Brick.WIDTH * Game.UNIT) / 2 // 修改每层x轴砖块起始坐标
+          // 循环x轴
+          for (let k = 0; k < cNum; k++) {
+            arr.push({
+              x: x_start + k * Brick.WIDTH * Game.UNIT,
               y: y_start + i * Brick.HEIGHT * Game.UNIT,
               type: 2,
             })

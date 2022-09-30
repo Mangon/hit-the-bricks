@@ -14,7 +14,7 @@ class Ball {
       speedX: 0.5 * Game.UNIT,              // x轴速度
       speedY: 2.5 * Game.UNIT,              // y轴速度
       fired: false,                         // 是否运动，默认静止不动
-      drawImage: function (ctx, x, y) {
+      draw: function (ctx, x, y) {
         ctx.beginPath()
         ctx.arc(x + realDiameter / 2, y + realDiameter / 2, realDiameter / 2, 0, Math.PI * 2, true)
         ctx.stroke()
