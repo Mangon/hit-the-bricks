@@ -1,5 +1,7 @@
+import Game from './game.js'
+
 // 砖块
-class Brick {
+export default class Brick {
   static WIDTH = 25
   static HEIGHT = 10
   constructor(x, y, life = 1) {

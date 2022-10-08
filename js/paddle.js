@@ -1,16 +1,19 @@
+import Game from './game.js'
+import Ball from './ball.js'
+
 // 定义挡板对象
-class Paddle {
-  static height = 11 // 挡板默认高度
-  static width = 51 // 挡板默认宽度
+export default class Paddle {
+  static HEIGHT = 11 // 挡板默认高度
+  static WIDTH = 51 // 挡板默认宽度
   static SPEED = 10 // x轴移动速度
-  static BALL_SPEED_MAX = 8 // 小球反弹速度最大值
+  static PADDING_BOTTOM = 20 // 挡板距底边距离
   constructor(g) {
-    let w = Paddle.width * Game.UNIT
-    let h = Paddle.height * Game.UNIT
+    let w = Paddle.WIDTH * Game.UNIT
+    let h = Paddle.HEIGHT * Game.UNIT
     let p = {
-      x: g.width / 2 - Paddle.width * Game.UNIT / 2, // x轴坐标
-      maxX: g.width - Paddle.width * Game.UNIT,      // 最大x轴距坐标
-      y: g.height - 20 * Game.UNIT, // y轴坐标
+      x: g.width / 2 - w / 2, // x轴坐标
+      y: g.height - Paddle.PADDING_BOTTOM * Game.UNIT, // y轴坐标
+      maxX: g.width - w, // 最大x轴距坐标
       w, // 挡板宽度
       h, // 挡板高度
       isLeftMove: true, // 能否左移
@@ -51,8 +54,8 @@ class Paddle {
   collide(ball) {
     let b = ball
     let p = this
-    if (Math.abs((b.x + b.d / 2) - (p.x + Paddle.width * Game.UNIT / 2)) < (b.d + Paddle.width * Game.UNIT) / 2 &&
-      Math.abs((b.y + b.d / 2) - (p.y + Paddle.height * Game.UNIT / 2)) < (b.d + Paddle.height * Game.UNIT) / 2) {
+    if (Math.abs((b.x + b.d / 2) - (p.x + p.w / 2)) < (b.d + p.w) / 2 &&
+      Math.abs((b.y + b.d / 2) - (p.y + p.h / 2)) < (b.d + p.h) / 2) {
       return true
     }
     return false
@@ -61,11 +64,11 @@ class Paddle {
   collideRange(ball) {
     let b = ball
     let p = this
-    let rangeX = (p.x + Paddle.width * Game.UNIT / 2) - (b.x + b.d / 2)
+    let rangeX = (p.x + p.w / 2) - (b.x + b.d / 2)
     if (rangeX < 0) { // 小球撞击挡板左侧
-      return rangeX / (b.d / 2 + Paddle.width * Game.UNIT / 2) * Paddle.BALL_SPEED_MAX
+      return rangeX / (b.d / 2 + p.w / 2) * Ball.SPEED_MAX
     } else if (rangeX > 0) { // 小球撞击挡板右侧
-      return rangeX / (b.d / 2 + Paddle.width * Game.UNIT / 2) * Paddle.BALL_SPEED_MAX
+      return rangeX / (b.d / 2 + p.w / 2) * Ball.SPEED_MAX
     }
   }
 }

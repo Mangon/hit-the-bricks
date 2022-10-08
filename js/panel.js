@@ -1,5 +1,7 @@
+import Game from './game.js'
+
 // 计分板
-class Panel {
+export default class Panel {
   static PANEL_X = 10                         // 计分板默认x轴坐标
   static PANEL_Y = 20                         // 计分板默认y轴坐标
   constructor(game) {

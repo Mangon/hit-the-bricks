@@ -1,8 +1,62 @@
 body {
   overflow: hidden;
   margin: 0;
+  box-sizing: border-box;
 }
 
 canvas {
   display: block;
+}
+
+.hint {
+  position: absolute;
+  display: flex;
+  align-items: center;
+  justify-content: space-around;
+  user-select: none;
+}
+
+.home {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background: #eee;
+}
+.home-wraper,
+.content {
+  width: 60%;
+  min-width: 320px;
+  padding: 16px;
+  background-color: #fff;
+  border-radius: 10px;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+}
+.title {
+  font-size: 42px;
+}
+.start,
+.desc,
+.back {
+  display: inline-block;
+  position: relative;
+  margin-top: 10px;
+  font-size: 20px;
+  cursor: pointer;
+}
+.selected::before {
+  content: " ";
+  box-sizing: border-box;
+  position: absolute;
+  border-color: transparent transparent transparent black;
+  border-width: 14px;
+  border-style: solid;
+  left: -28px;
+  top: 0;
+  scale: .5;
 }

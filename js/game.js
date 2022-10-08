@@ -1,6 +1,11 @@
+import Panel from './panel.js'
+import Paddle from './paddle.js'
+import Scene from './scene.js'
+import Ball from './ball.js'
+import { getWelcomeTeml } from '../html/welcome.js'
 
 // 游戏主要运行逻辑
-class Game {
+export default class Game {
   static MAXLV = 5                     // 最终关卡
   static MAXLIFE = 3                   // 初始生命
   static FPS = 60                      // 游戏运行帧数
@@ -21,7 +26,8 @@ class Game {
   actions = {}                         // 记录按键动作
   keydowns = {}                        // 记录按键code
   direciton = null                     // 设备方向 horizital 水平 vertical 垂直
-  hint = null                          // 提示信息
+  hint = null                          // 过关提示信息
+  welcome = null                       // 欢迎界面
   timer = null                         // 渲染器轮询定时器
   renderer = null                      // 渲染器
   static STATE = {
@@ -31,20 +37,26 @@ class Game {
     GAMEOVER: Symbol('GAMEOVER'), // 游戏结束
     LEVEL_FINISH: Symbol('LEVEL_FINISH'), // 游戏通关
     CONTINUNE: Symbol('CONTINUNE'), // 游戏继续
+    WELCOME: Symbol('WELCOME'), // 游戏初始
+  }
+  static WELCOME_STATE = {
+    START: Symbol('START'), // 开始游戏
+    DESC: Symbol('DESC'), // 游戏说明
+    BACK: Symbol('BACK') // 返回上一级
   }
   constructor() {
     this.canvas = document.getElementById('canvas')
     const { direction, width: maxWidth } = this.#changeOrientation(this.canvas)
     const { width, height } = this.#retinaAdaption(this.canvas)
 
-    // 以游戏高度的 1/500 为基本长度单位
-    Game.UNIT = this.canvas.height / 500
+    // 以canvas高度的 1/540 为基本长度单位
+    Game.UNIT = this.canvas.height / 540
 
     let g = {
       level: 1,                         // 初始为第一关
       score: 0,                         // 初始分数为0
       life: Game.MAXLIFE,               // 初始有最多生命
-      state: Game.STATE.START,          // 初始默认为START
+      state: Game.STATE.WELCOME,          // 初始默认为WELCOME
       context: this.canvas.getContext('2d'),
       width,
       height,
@@ -57,7 +69,7 @@ class Game {
   // 强制横屏
   #changeOrientation(elem) {
     const width = window.innerWidth,
-    height = window.innerHeight
+      height = window.innerHeight
     let direction = 'horizontal'
     if (width < height) {
       elem.style.width = `${height}px`
@@ -106,13 +118,37 @@ class Game {
       return
     }
     this.hint = document.createElement('div')
+    this.hint.classList.add('hint')
     this.#changeOrientation(this.hint)
-    this.hint.style.display = 'flex'
-    this.hint.style.alignItems = 'center'
-    this.hint.style.justifyContent = 'space-around'
     this.hint.style.font = `${Game.FONT_SIZE * Game.UNIT}px Microsoft YaHei`
     this.hint.innerText = label
     document.body.insertBefore(this.hint, this.canvas)
+  }
+  #drawWelcome() {
+    this.welcome = document.createElement('div')
+    this.#changeOrientation(this.welcome)
+    this.#renderWelcome(Game.WELCOME_STATE.START)
+    document.body.insertBefore(this.welcome, this.canvas)
+    this.welcome.addEventListener('click', (event) => {
+      switch (event.target.dataset?.event) {
+        case 'start':
+          this.welcome.state = Game.WELCOME_STATE.START
+          this.state = Game.STATE.START
+          this.#initSprites()
+          this.#render()
+          break
+        case 'desc':
+          this.#renderWelcome(Game.WELCOME_STATE.BACK)
+          break
+        case 'back':
+          this.#renderWelcome(Game.WELCOME_STATE.DESC)
+          break
+      }
+    })
+  }
+  #renderWelcome(welcomeState) {
+    this.welcome.state = welcomeState
+    this.welcome.innerHTML = getWelcomeTeml(this.welcome.state)
   }
   // 绘制图形
   #draw(obj) {
@@ -140,6 +176,9 @@ class Game {
   // 绘制计数板
   #drawPanel() {
     this.#draw(this.panel)
+  }
+  #gameWelcome() {
+    this.#drawWelcome()
   }
   // 生命-1 游戏继续
   #gameContinue() {
@@ -240,6 +279,9 @@ class Game {
         }
       }
       switch (this.state) {
+        case Game.STATE.WELCOME: // 游戏欢迎界面
+          this.#gameWelcome()
+          break
         case Game.STATE.CONTINUNE: // 游戏继续
           this.#gameContinue()
           this.#paint()
@@ -282,6 +324,10 @@ class Game {
       this.hint.remove()
       this.hint = null
     }
+    if (this.welcome) {
+      this.welcome.remove()
+      this.welcome = null
+    }
     this.context.clearRect(0, 0, this.width, this.height)
   }
   /**
@@ -321,11 +367,27 @@ class Game {
               this.ball[`move${direction}`].call(this.ball, Paddle.SPEED)
             }
             break;
+          case Game.STATE.WELCOME: // 欢迎界面
+            if (this.welcome.state !== Game.WELCOME_STATE.BACK) {
+              this.#renderWelcome(direction === 'Up' ? Game.WELCOME_STATE.START : Game.WELCOME_STATE.DESC)
+            }
+            break
         }
       }
     }
     const spaceAction = () => {
       switch (this.state) {
+        case Game.STATE.WELCOME:
+          if (this.welcome.state === Game.WELCOME_STATE.START) {
+            this.state = Game.STATE.START
+            this.#initSprites()
+            this.#render()
+          } else if (this.welcome.state === Game.WELCOME_STATE.DESC) {
+            this.#renderWelcome(Game.WELCOME_STATE.BACK)
+          } else {
+            this.#renderWelcome(Game.WELCOME_STATE.DESC)
+          }
+          break
         case Game.STATE.GAMEOVER:
           // 游戏结束时，重新开始
           this.#reset()
@@ -378,7 +440,14 @@ class Game {
       switch (event.code) {
         // 注册空格键事件
         case 'Space':
+        case 'Enter':
           spaceAction()
+          break
+        case 'ArrowUp':
+          arrowAction('Up')()
+          break
+        case 'ArrowDown':
+          arrowAction('Down')()
           break
       }
     })

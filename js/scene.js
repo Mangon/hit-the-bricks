@@ -1,5 +1,9 @@
+import Brick from './brick.js'
+import Game from './game.js'
+import Panel from './panel.js'
+
 // 定义场景
-class Scene {
+export default class Scene {
   bricks = null // 场景砖块实例
   constructor(g) {
     let s = {
@@ -29,7 +33,7 @@ class Scene {
       c_w = this.width, // canvas宽度
       c_h = this.height, // canvas高度
       xNum_max = Math.floor(c_w / (Brick.WIDTH * Game.UNIT)), // x轴砖块最大数量
-      yNum_max = Math.floor(c_h / (Brick.HEIGHT * Game.UNIT) / 2), // y轴砖块最大数量
+      yNum_max = Math.floor((c_h - Panel.PANEL_Y * Game.UNIT - 5 * Game.UNIT) / (Brick.HEIGHT * Game.UNIT) / 2), // y轴砖块最大数量
       xNum = Math.min(xNum_max, 16), // x轴砖块第一层数量
       yNum = Math.min(yNum_max, 9)  // y轴砖块层数
     let x_start = 0, // x轴起始坐标，根据砖块数量浮动

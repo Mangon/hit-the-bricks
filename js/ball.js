@@ -1,18 +1,21 @@
+import Game from './game.js'
+
 // 小球对象
-class Ball {
+export default class Ball {
   static DIAMETER = 9 // 小球直径
+  static SPEED_MAX = 8 // 小球反弹速度最大值
   constructor(g) {
     const realDiameter = Ball.DIAMETER * Game.UNIT;
     let b = {
       x: g.width / 2 - realDiameter / 2,    // x轴坐标
+      y: g.paddle.y - realDiameter - 1,     // y轴坐标
       minX: 0,                              // 最小x轴坐标
       maxX: g.width - realDiameter,         // 最大x轴坐标
-      y: g.paddle.y - realDiameter - 1,     // y轴坐标
-      minY: g.maxHeight,     // 最小y轴坐标
+      minY: g.maxHeight,                    // 最小y轴坐标
       maxY: g.height - realDiameter,        // 最大y轴坐标
       d: realDiameter,                      // 小球直径
-      speedX: 0.5 * Game.UNIT,              // x轴速度
-      speedY: 2.5 * Game.UNIT,              // y轴速度
+      speedX: (g.width - realDiameter) / 800 * 3,                 // x轴速度
+      speedY: (g.height - realDiameter - g.maxHeight) / 600 * 6, // y轴速度
       fired: false,                         // 是否运动，默认静止不动
       draw: function (ctx, x, y) {
         ctx.beginPath()
