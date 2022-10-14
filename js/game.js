@@ -42,7 +42,9 @@ export default class Game {
   static WELCOME_STATE = {
     START: Symbol('START'), // 开始游戏
     DESC: Symbol('DESC'), // 游戏说明
-    BACK: Symbol('BACK') // 返回上一级
+    DESC_SELECT: Symbol('DESC_SELECT'), // 游戏说明返回上一级
+    RANK: Symbol('RANK'), // 排行榜
+    RANK_SELECT: Symbol('RANK_SELECT'), // 排行榜返回上一级
   }
   constructor() {
     this.canvas = document.getElementById('canvas')
@@ -138,10 +140,13 @@ export default class Game {
           this.#render()
           break
         case 'desc':
-          this.#renderWelcome(Game.WELCOME_STATE.BACK)
+          this.#renderWelcome(Game.WELCOME_STATE.DESC_SELECT)
+          break
+        case 'rank':
+          this.#renderWelcome(Game.WELCOME_STATE.RANK_SELECT)
           break
         case 'back':
-          this.#renderWelcome(Game.WELCOME_STATE.DESC)
+          this.#renderWelcome(Game.WELCOME_STATE.START)
           break
       }
     })
@@ -193,6 +198,19 @@ export default class Game {
     this.#clear()
     // 绘制提示文字
     this.#drawLabel(`游戏结束，总分${this.score}`)
+    setTimeout(() => {
+      $('#form').modal()
+    }, 2000)
+  }
+  submit() {
+    const name = $('#name')[0].value
+    const score = this.score
+    let rank = JSON.parse(localStorage.getItem('rank') ?? '[]')
+    rank.push({ name, score })
+    rank = rank.sort((item1, item2) => { return item1.score > item2.score ? -1 : 1 })
+      .splice(0, 10)
+    localStorage.setItem('rank', JSON.stringify(rank))
+    $.modal.close()
   }
   // 游戏晋级
   #gameNext() {
@@ -368,8 +386,12 @@ export default class Game {
             }
             break;
           case Game.STATE.WELCOME: // 欢迎界面
-            if (this.welcome.state !== Game.WELCOME_STATE.BACK) {
-              this.#renderWelcome(direction === 'Up' ? Game.WELCOME_STATE.START : Game.WELCOME_STATE.DESC)
+            if (this.welcome.state !== Game.WELCOME_STATE.DESC_SELECT
+              && this.welcome.state !== Game.WELCOME_STATE.RANK_SELECT) {
+              const menuRank = [Game.WELCOME_STATE.START, Game.WELCOME_STATE.DESC, Game.WELCOME_STATE.RANK]
+              const currentRank = menuRank.indexOf(this.welcome.state)
+              const nextRank = direction === 'Up' ? menuRank[(currentRank - 1) < 0 ? 0 : (currentRank - 1)] : menuRank[(currentRank + 1) > 2 ? 2 : currentRank + 1]
+              this.#renderWelcome(nextRank)
             }
             break
         }
@@ -383,13 +405,18 @@ export default class Game {
             this.#initSprites()
             this.#render()
           } else if (this.welcome.state === Game.WELCOME_STATE.DESC) {
-            this.#renderWelcome(Game.WELCOME_STATE.BACK)
+            this.#renderWelcome(Game.WELCOME_STATE.DESC_SELECT)
+          } else if (this.welcome.state === Game.WELCOME_STATE.RANK) {
+            this.#renderWelcome(Game.WELCOME_STATE.RANK_SELECT)
           } else {
-            this.#renderWelcome(Game.WELCOME_STATE.DESC)
+            this.#renderWelcome(Game.WELCOME_STATE.START)
           }
           break
         case Game.STATE.GAMEOVER:
           // 游戏结束时，重新开始
+          if ($.modal.isActive()) {
+            return
+          }
           this.#reset()
           this.state = Game.STATE.START
           this.#initSprites()

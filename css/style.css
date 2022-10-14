@@ -24,6 +24,7 @@ canvas {
   align-items: center;
   background: #eee;
 }
+
 .home-wraper,
 .content {
   width: 60%;
@@ -37,11 +38,14 @@ canvas {
   justify-content: center;
   align-items: center;
 }
+
 .title {
   font-size: 42px;
 }
+
 .start,
 .desc,
+.rank,
 .back {
   display: inline-block;
   position: relative;
@@ -49,6 +53,7 @@ canvas {
   font-size: 20px;
   cursor: pointer;
 }
+
 .selected::before {
   content: " ";
   box-sizing: border-box;
@@ -59,4 +64,38 @@ canvas {
   left: -28px;
   top: 0;
   scale: .5;
+}
+
+.rank-item {
+  border: 1px solid #aaa;
+  border-radius: 5px;
+  padding: 5px;
+  margin: 10px;
+  display: flex;
+  justify-content: space-between;
+}
+
+.rank-rank {
+  width: 50px;
+  text-align: center;
+  vertical-align: middle;
+  font-size: 40px;
+}
+
+.rank-content {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+}
+
+.rank-name {
+  height: 30px;
+  font-size: 30px;
+  text-align: right;
+  width: 300px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  border-bottom: 1px solid #aaa;
+  padding-bottom: 5px;
 }
