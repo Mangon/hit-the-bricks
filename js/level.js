@@ -2,18 +2,16 @@ import Brick from './brick.js'
 import Game from './game.js'
 import Panel from './panel.js'
 
-// 定义场景
-export default class Scene {
-  bricks = null // 场景砖块实例
+// 定义关卡
+export default class Level {
   constructor(g) {
     let s = {
       lv: g.level, // 游戏关卡
       width: g.width,
-      height: g.height,
-      bricks: [] // 实例化所有砖块对象集合
+      height: g.height
     }
     Object.assign(this, s)
-    this.bricks = this.#initBrickList()
+    return this.#initBrickList()
   }
   // 实例化所有砖块对象
   #initBrickList() {

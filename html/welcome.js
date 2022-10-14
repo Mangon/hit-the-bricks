@@ -7,18 +7,17 @@ function getWelcomeTeml(welcomeState = Game.WELCOME_STATE.START) {
 <div class="rank ${welcomeState === Game.WELCOME_STATE.RANK ? 'selected' : ''}" data-event="rank">排行榜</div>
 `
 
+  const BACK = `<div class="back selected" data-event="back">返回</div>`
+
   const DESC = `
 <div class="description">
   <p>使用 ArrowLeft 和 ArrowRight 控制滑板向左或者向右</p>
   <p>使用 Enter 或 Space 控制发射小球或暂停游戏或者进入下一关</p>
   <p>努力获取更高的分数</p>
 </div>
-<div class="back ${welcomeState === Game.WELCOME_STATE.DESC_SELECT ? 'selected' : ''}" data-event="back">返回</div>
 `
 
-  const rank = JSON.parse(localStorage.getItem('rank') ?? '[]')
-
-  const rankTpl = rank.sort((item1, item2) => { return item1.score > item2.score ? -1 : 1 })
+  const RANK_LIST = JSON.parse(localStorage.getItem('rank') ?? '[]').sort((item1, item2) => { return item1.score > item2.score ? -1 : 1 })
     .reduce((res, rankItem, idx) => {
       return res + `
 <li class="rank-item">
@@ -31,8 +30,7 @@ function getWelcomeTeml(welcomeState = Game.WELCOME_STATE.START) {
     }, '')
 
   const RANK = `
-  ${rankTpl}
-<div class="back ${welcomeState === Game.WELCOME_STATE.RANK_SELECT ? 'selected' : ''}" data-event="back">返回</div>
+<div class="rank-list">${RANK_LIST}</div>
 `
 
   return `
@@ -40,10 +38,11 @@ function getWelcomeTeml(welcomeState = Game.WELCOME_STATE.START) {
   <div class="home-wraper">
     <div class="title">打砖块</div>
     <div class="content">
-    ${welcomeState === Game.WELCOME_STATE.DESC_SELECT ? DESC : (
-      welcomeState === Game.WELCOME_STATE.RANK_SELECT ? RANK : MENU
+    ${welcomeState === Game.WELCOME_STATE.DESC_SELECT ? (DESC + BACK) : (
+      welcomeState === Game.WELCOME_STATE.RANK_SELECT ? (RANK + BACK) : MENU
     )}
     </div>
+    
   </div>
 </div>
 `

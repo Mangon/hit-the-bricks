@@ -25,18 +25,25 @@ canvas {
   background: #eee;
 }
 
-.home-wraper,
-.content {
-  width: 60%;
-  min-width: 320px;
+.home-wraper {
+  width: 500px;
   padding: 16px;
   background-color: #fff;
   border-radius: 10px;
   text-align: center;
+}
+
+.content {
   display: flex;
   flex-direction: column;
   justify-content: center;
   align-items: center;
+}
+
+.rank-list {
+  height: 250px;
+  overflow: auto;
+  margin: 0 60px;
 }
 
 .title {
@@ -96,6 +103,6 @@ canvas {
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
-  border-bottom: 1px solid #aaa;
+  border-bottom: 1px dotted #aaa;
   padding-bottom: 5px;
 }

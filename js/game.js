@@ -1,6 +1,6 @@
 import Panel from './panel.js'
 import Paddle from './paddle.js'
-import Scene from './scene.js'
+import Level from './level.js'
 import Ball from './ball.js'
 import { getWelcomeTeml } from '../html/welcome.js'
 
@@ -14,7 +14,7 @@ export default class Game {
   level = null                         // 当前关卡
   life = null                          // 当前生命
   score = null                         // 当前分数
-  scene = null                         // 场景对象
+  scene = null                         // 关卡对象
   ball = null                          // 小球对象
   paddle = null                        // 挡板对象
   panel = null                         // 游戏板对象
@@ -173,7 +173,7 @@ export default class Game {
   }
   // 绘制所有砖块
   #drawBricks() {
-    const obj = this.scene.bricks
+    const obj = this.scene
     for (let item of obj) {
       this.#draw(item)
     }
@@ -198,9 +198,13 @@ export default class Game {
     this.#clear()
     // 绘制提示文字
     this.#drawLabel(`游戏结束，总分${this.score}`)
-    setTimeout(() => {
-      $('#form').modal()
-    }, 2000)
+    let rank = JSON.parse(localStorage.getItem('rank') ?? '[]')
+      .sort((item1, item2) => { return item1.score > item2.score ? 1 : -1 })
+    if (rank.length < 10 || rank[0]?.score < this.score) {
+      setTimeout(() => {
+        $('#form').modal()
+      }, 0)
+    }
   }
   submit() {
     const name = $('#name')[0].value
@@ -241,7 +245,7 @@ export default class Game {
       b.speedX = p.collideRange(b)
     } else {
       // 小球碰撞砖块检测
-      this.scene.bricks.forEach((item, i, arr) => {
+      this.scene.forEach((item, i, arr) => {
         if (item.collide(b)) { // 小球、砖块已碰撞
           if (!item.alive) { // 砖块血量为0时，进行移除
             arr.splice(i, 1)
@@ -262,7 +266,7 @@ export default class Game {
           }
           // 计算分数
           this.score += Game.BRICK_SCORE
-          if (this.scene.bricks.length === 0) {
+          if (this.scene.length === 0) {
             this.state = Game.STATE.LEVEL_FINISH
           }
         }
@@ -279,7 +283,7 @@ export default class Game {
     this.timer && cancelAnimationFrame(this.timer)
   }
   #initSprites() {
-    this.scene = new Scene(this)
+    this.scene = new Level(this)
     this.paddle = new Paddle(this)
     this.ball = new Ball(this)
     this.panel = new Panel(this)
